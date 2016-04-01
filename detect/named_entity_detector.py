@@ -2,62 +2,23 @@
 #
 # The base class for all named entity detectors.
 
-import re
-from HTMLParser import HTMLParser
-import requests
-
-
-class HTMLStripper(HTMLParser):
-    """
-    Strip HTML tags and return only the raw data within the HTML content.
-    """
-
-    def __init__(self):
-        self.reset()
-        self.fed = []
-
-    def handle_data(self, d):
-        self.fed.append(d)
-
-    def get_data(self):
-        return ''.join(self.fed)
-
 
 class NamedEntityDetector:
     """
       The base class for all named entity detectors.
     """
 
-    def __init__(self, network_name, positive_entities, negative_entities):
+    def __init__(self, network_name, entity, urls):
         """
         Initialise the new instance
+
+        :param network_name the neural network name
+        :param entity a vector representing the entity we wish to learn
+        :param urls urls that positively classify the entity
         """
         self.network_name = network_name
-        self.positive_entities = positive_entities
-        self.negative_entities = negative_entities
-
-    def readUrl(self, url):
-        """
-        Read the contents of a URL and return as a string
-        """
-        return requests.get(url).content
-
-    def stripHtml(self, data):
-        """
-        Strip the HTML from a web page of data and return the content.
-        """
-        data = data.replace("\n", " ")
-        data = re.sub("<script.*?script>", "", data, 0, re.MULTILINE)
-        data = re.sub("<style.*?style>", "", data, 0, re.MULTILINE)
-        htmlParser = HTMLStripper()
-        htmlParser.feed(data)
-        return htmlParser.get_data()
-
-    def tokensize(self, data):
-        """
-        Tokensize the input string into an array of words.
-        """
-        return data.split()
+        self.entity = entity
+        self.urls = urls
 
     def train(self):
         """

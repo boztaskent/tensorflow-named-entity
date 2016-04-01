@@ -10,15 +10,11 @@ class SimpleNamedEntityDetector(NamedEntityDetector):
       A simple named entity detector.
     """
 
-    def __init__(self, network_name, positive_entities, negative_entities):
+    def __init__(self, network_name, entity, urls):
         """
         Initialise the instance.
-
-        :param network_name the neural network name
-        :param positive_entities the list of positive entities we are detecting
-        :param negative_entities the list of negative entities used for training
         """
-        NamedEntityDetector.__init__(self, network_name, positive_entities, negative_entities)
+        NamedEntityDetector.__init__(self, network_name, entity, urls)
 
     def train(self):
         """
