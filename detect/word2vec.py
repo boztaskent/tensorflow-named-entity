@@ -29,11 +29,14 @@ import matplotlib.pyplot as plt
 
 # Read the data into a string.
 def read_data():
+    delchars = '.,;\'\":?-'
     data = ""
     prefix = os.path.dirname(__file__) + "/data/profiles"
     for filename in os.listdir(prefix):
         with open(prefix + "/" + filename, 'r') as myfile:
             data += myfile.read().replace('\n', ' ') + " "
+    data = data.translate(None, delchars)
+    print('Data', data)
     return data.split()
 
 words = read_data()
@@ -104,7 +107,7 @@ for i in range(8):
 
 # Step 4: Build and train a skip-gram model.
 
-batch_size = 128
+batch_size = 256
 embedding_size = 128  # Dimension of the embedding vector.
 skip_window = 1  # How many words to consider left and right.
 num_skips = 2  # How many times to reuse an input to generate a label.
@@ -115,6 +118,8 @@ num_skips = 2  # How many times to reuse an input to generate a label.
 valid_size = 16  # Random set of words to evaluate similarity on.
 valid_window = 100  # Only pick dev samples in the head of the distribution.
 valid_examples = np.array(random.sample(np.arange(valid_window), valid_size))
+cameron_examples = np.array([dictionary['DavidCameronAt1094512'], dictionary['DavidCameronAt2102604'], dictionary['DavidCameronAt29476'], dictionary['DavidCameronAtArticle1']])
+print('David Camerons: ', cameron_examples)
 num_sampled = 64  # Number of negative examples to sample.
 
 graph = tf.Graph()
@@ -151,13 +156,13 @@ with graph.as_default():
     # Compute the cosine similarity between minibatch examples and all embeddings.
     norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keep_dims=True))
     normalized_embeddings = embeddings / norm
-    valid_embeddings = tf.nn.embedding_lookup(
-        normalized_embeddings, valid_dataset)
-    similarity = tf.matmul(
-        valid_embeddings, normalized_embeddings, transpose_b=True)
+    # valid_embeddings = tf.nn.embedding_lookup(
+    #     normalized_embeddings, valid_dataset)
+    # similarity = tf.matmul(
+    #     valid_embeddings, normalized_embeddings, transpose_b=True)
 
 # Step 5: Begin training.
-num_steps = 1001
+num_steps = 20001
 
 with tf.Session(graph=graph) as session:
     # We must initialize all variables before we use them.
@@ -183,36 +188,38 @@ with tf.Session(graph=graph) as session:
             average_loss = 0
 
         # Note that this is expensive (~20% slowdown if computed every 500 steps)
-        if step % 10000 == 0:
-            sim = similarity.eval()
-            for i in xrange(valid_size):
-                valid_word = reverse_dictionary[valid_examples[i]]
-                top_k = 8  # number of nearest neighbors
-                nearest = (-sim[i, :]).argsort()[1:top_k + 1]
-                log_str = "Nearest to %s:" % valid_word
-                for k in xrange(top_k):
-                    if nearest[k] in reverse_dictionary:
-                        close_word = reverse_dictionary[nearest[k]]
-                        log_str = "%s %s," % (log_str, close_word)
-                        print(log_str)
+        # if step % 10000 == 0:
+        #     sim = similarity.eval()
+        #     for i in xrange(valid_size):
+        #         valid_word = reverse_dictionary[valid_examples[i]]
+        #         top_k = 8  # number of nearest neighbors
+        #         nearest = (-sim[i, :]).argsort()[1:top_k + 1]
+        #         log_str = "Nearest to %s:" % valid_word
+        #         for k in xrange(top_k):
+        #             if nearest[k] in reverse_dictionary:
+        #                 close_word = reverse_dictionary[nearest[k]]
+        #                 log_str = "%s %s," % (log_str, close_word)
+        #                 print(log_str)
     final_embeddings = normalized_embeddings.eval()
-
 
 # Step 6: Visualize the embeddings.
 
 def plot_with_labels(low_dim_embs, labels, filename='tsne.png'):
     assert low_dim_embs.shape[0] >= len(labels), "More labels than embeddings"
-    plt.figure(figsize=(18, 18))  # in inches
+    plt.figure(figsize=(36, 36))  # in inches
     for i, label in enumerate(labels):
         x, y = low_dim_embs[i, :]
         plt.scatter(x, y)
+        color = 'black'
+        if i in cameron_examples:
+            color = 'red'
         plt.annotate(label,
                      xy=(x, y),
                      xytext=(5, 2),
                      textcoords='offset points',
                      ha='right',
-                     va='bottom')
-
+                     va='bottom',
+                     color=color)
     plt.savefig(filename)
 
 
@@ -220,7 +227,7 @@ def run_word2vec():
     from sklearn.manifold import TSNE
 
     tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000)
-    plot_only = 500
+    plot_only = 510
     low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
     labels = [unicode(reverse_dictionary[i], "utf-8") for i in xrange(plot_only)]
     plot_with_labels(low_dim_embs, labels)
