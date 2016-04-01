@@ -4,9 +4,7 @@
 
 import re
 from HTMLParser import HTMLParser
-from util.word2vec import Word2Vec
 import requests
-import yaml
 
 
 class HTMLStripper(HTMLParser):

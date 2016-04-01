@@ -13,7 +13,7 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
         """
         Initialise the Simple Named Entity Detector with data for David Cameron.
         """
-        self.simpleNamedEntityDetector = SimpleNamedEntityDetector(os.path.dirname(__file__) + "/data/davidcameron.yml")
+        self.simpleNamedEntityDetector = SimpleNamedEntityDetector("test", [], [])
 
     def test_readUrl(self):
         """
