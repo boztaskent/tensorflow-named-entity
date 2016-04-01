@@ -1,6 +1,6 @@
-#!/usr/bin/python
+# Copyright (C) 2016 Thomson Reuters. All Rights Reserved.
 #
-# The implementation of a simple named entity detector.
+# The base class for all named entity detectors.
 
 import re
 from HTMLParser import HTMLParser
@@ -30,11 +30,13 @@ class NamedEntityDetector:
       The base class for all named entity detectors.
     """
 
-    def __init__(self, dataFile):
+    def __init__(self, network_name, positive_entities, negative_entities):
         """
         Initialise the new instance
         """
-        self.data = yaml.load(open(dataFile, "r"))
+        self.network_name = network_name
+        self.positive_entities = positive_entities
+        self.negative_entities = negative_entities
 
     def readUrl(self, url):
         """

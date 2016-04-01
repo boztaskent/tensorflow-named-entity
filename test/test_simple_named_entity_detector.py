@@ -1,6 +1,6 @@
-#!/usr/bin/python
+# Copyright (C) 2016 Thomson Reuters. All Rights Reserved.
 #
-# Tests for the article reader.
+# Tests for the simple named entity detector.
 
 import os
 import unittest
@@ -21,7 +21,7 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
         Internet can be guaranteed to remain the same.
         """
         data = self.simpleNamedEntityDetector.readUrl("http://www.arshadmahmood.me")
-        self.assertEqual(len(data), 44647)
+        self.assertEqual(44647, len(data))
 
     def test_stripHtml(self):
         """
@@ -30,7 +30,7 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
         """
         data = self.simpleNamedEntityDetector.readUrl("http://www.arshadmahmood.me")
         stripped_data = self.simpleNamedEntityDetector.stripHtml(data)
-        self.assertEqual(len(stripped_data), 651)
+        self.assertEqual(651, len(stripped_data))
 
 
 if __name__ == '__main__':

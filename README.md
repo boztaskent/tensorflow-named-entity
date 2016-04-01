@@ -7,5 +7,5 @@ The purpose of this project is to investigate named entity detection using Tenso
 Dependencies:
 
  - tensorflow
- - pyyaml
- - lxml
+ - htmlparser
+ - google
