@@ -2,32 +2,35 @@
 #
 # The base class for all named entity detectors.
 
+import os
+
 
 class NamedEntityDetector:
     """
       The base class for all named entity detectors.
     """
 
-    def __init__(self, network_name, entity, urls):
+    def __init__(self):
         """
         Initialise the new instance
+        """
+        self.labels = dict()
+        self.labels[""] = 0
 
-        :param network_name the neural network name
-        :param entity a vector representing the entity we wish to learn
-        :param urls urls that positively classify the entity
+    def read_words(self, filename):
         """
-        self.network_name = network_name
-        self.entity = entity
-        self.urls = urls
+        Read a file from input and return an array of words.
 
-    def train(self):
+        :param filename the filename to be read, assumed to be relative to this folder
         """
-        Train the neural network.
-        """
-        raise Exception("Must be implemented by sub-class")
+        with open(os.path.dirname(__file__) + "/" + filename, "r") as myfile:
+            return myfile.read().replace("\n", " ").split()
 
-    def detect(self, url):
+    def get_label(self, word):
         """
-        Detect the named entities contained in the given url
+        Get a label from the dictionary for a specific word. If the word is not in the
+        dictionary then add it and return the label that is generated.
         """
-        raise Exception("Must be implemented by sub-class")
+        if word not in self.labels.keys():
+            self.labels[word] = len(self.labels)
+        return self.labels[word]
