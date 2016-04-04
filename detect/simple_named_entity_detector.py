@@ -30,7 +30,7 @@ class SimpleNamedEntityDetector(NamedEntityDetector):
         self.y = tf.nn.softmax(tf.matmul(self.x, self.W) + self.b)
         self.y_ = tf.placeholder(tf.float32, [None, num_entities])
 
-    def train(self, network_name, num_steps, training_data):
+    def train(self, network_name, outer_steps, inner_steps, training_data):
         """
         Train the neural network
         """
@@ -41,15 +41,16 @@ class SimpleNamedEntityDetector(NamedEntityDetector):
         init = tf.initialize_all_variables()
         sess = tf.Session()
         sess.run(init)
-        for i in range(num_steps):
+        for x in range(outer_steps):
             for j in range(len(training_data)):
                 words = self.read_words(training_data[j][1])
                 mapped_words = map(self.get_label, words)
                 word_vectors = word_vec.vectorize(mapped_words, self.window_size, 0)
                 for k in range(len(word_vectors)):
-                    batch_xs = [word_vectors[k] * self.mult_factor]
-                    batch_ys = [training_data[j][0]]
-                    sess.run(train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys})
+                    for i in range(inner_steps):
+                        batch_xs = [word_vectors[k] * self.mult_factor]
+                        batch_ys = [training_data[j][0]]
+                        sess.run(train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys})
         output_file = os.path.dirname(__file__) + "/" + network_name
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))

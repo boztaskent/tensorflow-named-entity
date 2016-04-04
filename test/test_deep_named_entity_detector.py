@@ -12,7 +12,7 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
         """
         Initialise the Simple Named Entity Detector with data for David Cameron.
         """
-        self.deepNamedEntityDetector = DeepNamedEntityDetector(3, 6)
+        self.deepNamedEntityDetector = DeepNamedEntityDetector(3, 6, 50)
 
     def test_worldCheck1Profiles(self):
         """
@@ -26,9 +26,12 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
             ([0.0, 0.0, 0.0, 0.0, 1.0, 0.0], "data/profiles/train/davidcameron_5.txt"),
             ([0.0, 0.0, 0.0, 0.0, 0.0, 1.0], "data/profiles/train/davidcameron_6.txt"),
         ]
-        self.deepNamedEntityDetector.train("data/temp/deepnet/deepnet.bin", 2, training_data)
+        self.deepNamedEntityDetector.train("data/temp/deepnet/deepnet.bin", 2, 2, training_data)
 
-        test_data = ["data/profiles/test/davidcameron_1.txt"]
+        test_data = [
+            "data/profiles/test/davidcameron_1.txt",
+            "data/profiles/test/davidcameron_2.txt"
+        ]
         self.deepNamedEntityDetector.run("data/temp/deepnet/deepnet.bin", test_data)
 
 

@@ -33,7 +33,7 @@ class NamedEntityDetector:
         dictionary then add it and return the label that is generated.
         """
         if word not in self.labels.keys():
-            self.labels[word] = len(self.labels) * 0.0001
+            self.labels[word] = len(self.labels) * 0.000001
         return self.labels[word]
 
     def softmax(self, score):
