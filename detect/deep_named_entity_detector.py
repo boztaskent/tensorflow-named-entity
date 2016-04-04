@@ -15,7 +15,7 @@ class DeepNamedEntityDetector(NamedEntityDetector):
       A deep neural network named entity detector.
     """
 
-    def __init__(self, window_size, num_entities):
+    def __init__(self, window_size, num_entities, multi_factor=10):
         """
         Initialise the instance.
         """
@@ -23,8 +23,9 @@ class DeepNamedEntityDetector(NamedEntityDetector):
 
         self.window_size = window_size
         self.num_entities = num_entities
-        self.x = tf.placeholder(tf.float32, [None, window_size])
-        self.W = tf.Variable(tf.zeros([window_size, num_entities]), name="weights")
+        self.mult_factor = multi_factor
+        self.x = tf.placeholder(tf.float32, [None, window_size * self.mult_factor])
+        self.W = tf.Variable(tf.zeros([window_size * self.mult_factor, num_entities]), name="weights")
         self.b = tf.Variable(tf.zeros([num_entities]), name="bias")
         self.y_ = tf.placeholder(tf.float32, [None, num_entities])
 
@@ -68,37 +69,13 @@ class DeepNamedEntityDetector(NamedEntityDetector):
                 mapped_words = map(self.get_label, words)
                 word_vectors = word_vec.vectorize(mapped_words, self.window_size, 0)
                 for k in range(len(word_vectors)):
-                    batch_xs = [word_vectors[k]]
+                    batch_xs = [word_vectors[k] * self.mult_factor]
                     batch_ys = [training_data[j][0]]
                     sess.run(train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys, self.keep_prob: 0.5})
         output_file = os.path.dirname(__file__) + "/" + network_name
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
         saver.save(sess, output_file)
-        sess.close()
-
-    def test(self, network_name, test_data):
-        """
-        Restore the network with the specified name and then run the test data against it.
-        """
-        word_vec = SimpleWordVec()
-        init = tf.initialize_all_variables()
-        sess = tf.Session()
-        sess.run(init)
-        saver = tf.train.Saver()
-        saver.restore(sess, os.path.dirname(__file__) + "/" + network_name)
-        for i in range(len(test_data)):
-            words = self.read_words(test_data[i])
-            mapped_words = map(self.get_label, words)
-            word_vectors = word_vec.vectorize(mapped_words, self.window_size, 0)
-
-            correct_prediction = tf.equal(tf.argmax(self.y_conv, 1), tf.argmax(self.y_, 1))
-            accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-            score = 0.0
-            for j in range(len(word_vectors)):
-                batch_xs = [word_vectors[j]]
-                score += sess.run(accuracy, feed_dict={self.x: batch_xs, self.keep_prob: 0.5})
-            print score / len(word_vectors)
         sess.close()
 
     def run(self, network_name, test_data):
@@ -119,7 +96,7 @@ class DeepNamedEntityDetector(NamedEntityDetector):
             calc = tf.nn.softmax(tf.matmul(self.h_fc1_drop, self.W_fc2) + self.b_fc2)
             score = [0.0] * self.num_entities
             for j in range(len(word_vectors)):
-                batch_xs = [word_vectors[j]]
+                batch_xs = [word_vectors[j] * self.mult_factor]
                 result = sess.run(calc, feed_dict={self.x: batch_xs, self.keep_prob: 0.5})
                 for k in range(self.num_entities):
                     score[k] += result[0][k]
