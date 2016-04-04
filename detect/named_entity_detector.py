@@ -2,6 +2,7 @@
 #
 # The base class for all named entity detectors.
 
+import math
 import os
 
 
@@ -32,5 +33,18 @@ class NamedEntityDetector:
         dictionary then add it and return the label that is generated.
         """
         if word not in self.labels.keys():
-            self.labels[word] = len(self.labels)
+            self.labels[word] = len(self.labels) * 0.0001
         return self.labels[word]
+
+    def softmax(self, score):
+        """
+        Compute the softmax function for a list of scores
+        """
+        max_score = max(score)
+        min_score = min(score)
+        for i in range(len(score)):
+            score[i] = math.exp(score[i] / (max_score - min_score))
+        total_sum = sum(score)
+        for i in range(len(score)):
+            score[i] = score[i] / total_sum
+        return score

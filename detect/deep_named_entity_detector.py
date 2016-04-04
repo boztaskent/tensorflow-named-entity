@@ -88,7 +88,7 @@ class DeepNamedEntityDetector(NamedEntityDetector):
         saver = tf.train.Saver()
         saver.restore(sess, os.path.dirname(__file__) + "/" + network_name)
         for i in range(len(test_data)):
-            words = self.read_words(test_data[i][2])
+            words = self.read_words(test_data[i])
             mapped_words = map(self.get_label, words)
             word_vectors = word_vec.vectorize(mapped_words, self.window_size, 0)
 
@@ -97,9 +97,35 @@ class DeepNamedEntityDetector(NamedEntityDetector):
             score = 0.0
             for j in range(len(word_vectors)):
                 batch_xs = [word_vectors[j]]
-                batch_ys = [test_data[i][1]]
-                score += sess.run(accuracy, feed_dict={self.x: batch_xs, self.y_: batch_ys, self.keep_prob: 0.5})
-            print test_data[i][0], score / len(word_vectors)
+                score += sess.run(accuracy, feed_dict={self.x: batch_xs, self.keep_prob: 0.5})
+            print score / len(word_vectors)
+        sess.close()
+
+    def run(self, network_name, test_data):
+        """
+        Restore the network with the specified name and then run the test data against it.
+        """
+        word_vec = SimpleWordVec()
+        init = tf.initialize_all_variables()
+        sess = tf.Session()
+        sess.run(init)
+        saver = tf.train.Saver()
+        saver.restore(sess, os.path.dirname(__file__) + "/" + network_name)
+        for i in range(len(test_data)):
+            words = self.read_words(test_data[i])
+            mapped_words = map(self.get_label, words)
+            word_vectors = word_vec.vectorize(mapped_words, self.window_size, 0)
+
+            calc = tf.nn.softmax(tf.matmul(self.h_fc1_drop, self.W_fc2) + self.b_fc2)
+            score = [0.0] * self.num_entities
+            for j in range(len(word_vectors)):
+                batch_xs = [word_vectors[j]]
+                result = sess.run(calc, feed_dict={self.x: batch_xs, self.keep_prob: 0.5})
+                for k in range(self.num_entities):
+                    score[k] += result[0][k]
+            print "Raw score: ", score
+            print "Softmax score: ", self.softmax(score)
+
         sess.close()
 
     def weight_variable(self, shape):
