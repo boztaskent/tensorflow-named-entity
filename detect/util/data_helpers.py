@@ -2,6 +2,7 @@ import os
 import numpy as np
 import re
 import itertools
+import nltk
 from collections import Counter
 
 
@@ -28,23 +29,36 @@ class DataHelper(object):
         return string.strip().lower()
 
 
-    def load_data_and_labels(self, training_data):
+    def load_data_and_labels(self, training_data, max_words):
         x_text = []
         y = []
         for i in range(len(training_data)):
             label = training_data[i][0]
             filename = training_data[i][1]
-            lines = list(open(os.path.dirname(__file__) + "/../" + filename, "r").readlines())
-            lines = [s.strip() for s in lines]
-            lines = [self.clean_str(line) for line in lines]
-            for _ in lines:
+            sentences = self.get_sentences(filename, max_words)
+            for _ in sentences:
                 y.append(label)
-            for line in lines:
-                x_text.append(line)
+            for sent in sentences:
+                x_text.append(sent)
 
-        x_text = [s.split(" ") for s in x_text]
+        # x_text = [s.split(" ") for s in x_text]
 
         return [x_text, y]
+
+    def get_sentences(self, filename, max_words):
+        with open(os.path.dirname(__file__) + "/../" + filename, "r") as my_file:
+            contents = my_file.read()
+            sentences = nltk.sent_tokenize(contents)
+            sentences = [self.clean_str(sent) for sent in sentences]
+            sentences = [nltk.word_tokenize(sent) for sent in sentences]
+            valid_sentences = []
+            for sent in sentences:
+                if len(sent) > max_words:
+                    for i in xrange(0, len(sent), max_words):
+                        valid_sentences.append(sent[i:i+max_words])
+                else:
+                    valid_sentences.append(sent)
+            return valid_sentences
 
     def pad_sentences(self, sentences, padding_word="<PAD/>"):
         """
@@ -84,13 +98,13 @@ class DataHelper(object):
         return [x, y]
 
 
-    def load_data(self, training_data):
+    def load_data(self, training_data, max_words):
         """
         Loads and preprocessed data for the MR dataset.
         Returns input vectors, labels, vocabulary, and inverse vocabulary.
         """
         # Load and preprocess data
-        sentences, labels = self.load_data_and_labels(training_data)
+        sentences, labels = self.load_data_and_labels(training_data, max_words)
         sentences_padded = self.pad_sentences(sentences)
         vocabulary, vocabulary_inv = self.build_vocab(sentences_padded)
         x, y = self.build_input_data(sentences_padded, labels, vocabulary)

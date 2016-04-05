@@ -23,5 +23,4 @@ class TestDataHelpers(unittest.TestCase):
 
         batches = data_helper.batch_iter(x, 50, 1, shuffle=False)
         for x_test_batch in batches:
-            print(len(x_test_batch))
             print(x_test_batch[0])
