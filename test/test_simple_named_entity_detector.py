@@ -27,7 +27,7 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
             ([0.0, 0.0, 0.0, 0.0, 0.0, 1.0], "data/profiles/train/davidcameron_6.txt"),
         ]
 
-        self.simpleNamedEntityDetector.train("data/temp/simplenet/simplenet.bin", 5, 5, training_data)
+        self.simpleNamedEntityDetector.train("data/temp/simplenet/simplenet.bin", 100000, 5, training_data)
 
         test_data = [
             "data/profiles/test/davidcameron_1.txt",

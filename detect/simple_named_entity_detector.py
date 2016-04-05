@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from named_entity_detector import NamedEntityDetector
 from util.wordvec import SimpleWordVec
-
+from util.dataset import DataSet
 
 class SimpleNamedEntityDetector(NamedEntityDetector):
     """
@@ -41,16 +41,13 @@ class SimpleNamedEntityDetector(NamedEntityDetector):
         init = tf.initialize_all_variables()
         sess = tf.Session()
         sess.run(init)
-        for x in range(outer_steps):
-            for j in range(len(training_data)):
-                words = self.read_words(training_data[j][1])
-                mapped_words = map(self.get_label, words)
-                word_vectors = word_vec.vectorize(mapped_words, self.window_size, 0)
-                for k in range(len(word_vectors)):
-                    for i in range(inner_steps):
-                        batch_xs = [word_vectors[k] * self.mult_factor]
-                        batch_ys = [training_data[j][0]]
-                        sess.run(train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys})
+        dataset = DataSet(self.window_size, training_data)
+        for i in range(outer_steps):
+            data = dataset.get_data()
+            for i in range(inner_steps):
+                batch_xs = [data[1] * self.mult_factor]
+                batch_ys = [data[0]]
+                sess.run(train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys})
         output_file = os.path.dirname(__file__) + "/" + network_name
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
