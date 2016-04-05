@@ -28,7 +28,6 @@ class DataHelper(object):
         string = re.sub(r"\s{2,}", " ", string)
         return string.strip().lower()
 
-
     def load_data_and_labels(self, training_data, max_words):
         x_text = []
         y = []
@@ -40,8 +39,6 @@ class DataHelper(object):
                 y.append(label)
             for sent in sentences:
                 x_text.append(sent)
-
-        # x_text = [s.split(" ") for s in x_text]
 
         return [x_text, y]
 
@@ -60,16 +57,16 @@ class DataHelper(object):
                     valid_sentences.append(sent)
             return valid_sentences
 
-    def pad_sentences(self, sentences, padding_word="<PAD/>"):
+    def pad_sentences(self, sentences, max_words):
         """
         Pads all sentences to the same length. The length is defined by the longest sentence.
         Returns padded sentences.
         """
-        sequence_length = max(len(x) for x in sentences)
+        padding_word = '<NONE/>'
         padded_sentences = []
         for i in range(len(sentences)):
             sentence = sentences[i]
-            num_padding = sequence_length - len(sentence)
+            num_padding = max_words - len(sentence)
             new_sentence = sentence + [padding_word] * num_padding
             padded_sentences.append(new_sentence)
         return padded_sentences
@@ -83,6 +80,7 @@ class DataHelper(object):
         # Build vocabulary
         word_counts = Counter(itertools.chain(*sentences))
         # Mapping from index to word
+        # vocabulary_inv = dict()
         vocabulary_inv = [x[0] for x in word_counts.most_common()]
         # Mapping from word to index
         vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
@@ -91,41 +89,53 @@ class DataHelper(object):
 
     def build_input_data(self, sentences, labels, vocabulary):
         """
-        Maps sentencs and labels to vectors based on a vocabulary.
+        Maps sentences and labels to vectors based on a vocabulary.
         """
-        x = np.array([[vocabulary[word] for word in sentence] for sentence in sentences])
+        x = np.array([[self.getWordIndexFromVocabulary(word, vocabulary) for word in sentence] for sentence in sentences])
         y = np.array(labels)
         return [x, y]
 
+    def getWordIndexFromVocabulary(self, word, vocabulary):
+        if word in vocabulary:
+            return vocabulary[word]
+        else:
+            return vocabulary['<NONE/>'];
 
-    def load_data(self, training_data, max_words):
-        """
-        Loads and preprocessed data for the MR dataset.
-        Returns input vectors, labels, vocabulary, and inverse vocabulary.
-        """
+    def load_data(self, data, max_words):
         # Load and preprocess data
-        sentences, labels = self.load_data_and_labels(training_data, max_words)
-        sentences_padded = self.pad_sentences(sentences)
+        sentences, labels = self.load_data_and_labels(data, max_words)
+        sentences_padded = self.pad_sentences(sentences, max_words)
         vocabulary, vocabulary_inv = self.build_vocab(sentences_padded)
         x, y = self.build_input_data(sentences_padded, labels, vocabulary)
         return [x, y, vocabulary, vocabulary_inv]
 
 
-    def batch_iter(self, data, batch_size, num_epochs, shuffle=True):
+    def load_data_using_voc(self, data, max_words, vocabulary):
+        # Load and preprocess data
+        sentences, labels = self.load_data_and_labels(data, max_words)
+        sentences_padded = self.pad_sentences(sentences, max_words)
+        x, y = self.build_input_data(sentences_padded, labels, vocabulary)
+        return [x, y]
+
+
+    def batch_iter(self, data_x, data_y, batch_size, num_epochs, shuffle=True):
         """
         Generates a batch iterator for a dataset.
         """
-        data = np.array(data)
-        data_size = len(data)
-        num_batches_per_epoch = int(len(data)/batch_size) + 1
+        data_x = np.array(data_x)
+        data_y = np.array(data_y)
+        data_size = len(data_x)
+        num_batches_per_epoch = int(len(data_x)/batch_size) + 1
         for epoch in range(num_epochs):
             # Shuffle the data at each epoch
             if shuffle:
                 shuffle_indices = np.random.permutation(np.arange(data_size))
-                shuffled_data = data[shuffle_indices]
+                shuffled_data_x = data_x[shuffle_indices]
+                shuffled_data_y = data_y[shuffle_indices]
             else:
-                shuffled_data = data
+                shuffled_data_x = data_x
+                shuffled_data_y = data_y
             for batch_num in range(num_batches_per_epoch):
                 start_index = batch_num * batch_size
                 end_index = min((batch_num + 1) * batch_size, data_size)
-                yield shuffled_data[start_index:end_index]
+                yield shuffled_data_x[start_index:end_index], shuffled_data_y[start_index:end_index]

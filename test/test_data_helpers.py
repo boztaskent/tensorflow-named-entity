@@ -19,8 +19,11 @@ class TestDataHelpers(unittest.TestCase):
 
         data_helper = DataHelper()
 
-        x, y, voc, vocInv = data_helper.load_data(training_data)
+        x, y, voc, vocInv = data_helper.load_data(training_data, 50)
+        print(vocInv)
 
-        batches = data_helper.batch_iter(x, 50, 1, shuffle=False)
-        for x_test_batch in batches:
-            print(x_test_batch[0])
+        batches = data_helper.batch_iter(x, y, 50, 1, shuffle=True)
+        for batch_x, batch_y in batches:
+            print(batch_y[5, :])
+            temp = [vocInv[i] for i in batch_x[5, :]]
+            print(temp)
