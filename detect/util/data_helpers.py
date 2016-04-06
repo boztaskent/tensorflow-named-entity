@@ -80,7 +80,6 @@ class DataHelper(object):
         # Build vocabulary
         word_counts = Counter(itertools.chain(*sentences))
         # Mapping from index to word
-        # vocabulary_inv = dict()
         vocabulary_inv = [x[0] for x in word_counts.most_common()]
         # Mapping from word to index
         vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
@@ -91,15 +90,15 @@ class DataHelper(object):
         """
         Maps sentences and labels to vectors based on a vocabulary.
         """
-        x = np.array([[self.getWordIndexFromVocabulary(word, vocabulary) for word in sentence] for sentence in sentences])
+        x = np.array([[self.getWordValueFromVocabulary(word, vocabulary) for word in sentence] for sentence in sentences])
         y = np.array(labels)
         return [x, y]
 
-    def getWordIndexFromVocabulary(self, word, vocabulary):
+    def getWordValueFromVocabulary(self, word, vocabulary):
         if word in vocabulary:
-            return vocabulary[word]
+            return vocabulary[word] * 1.0 / len(vocabulary)
         else:
-            return vocabulary['<NONE/>'];
+            return vocabulary['<NONE/>'] * 1.0 / len(vocabulary)
 
     def load_data(self, data, max_words):
         # Load and preprocess data

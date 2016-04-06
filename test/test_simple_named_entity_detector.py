@@ -12,7 +12,7 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
         """
         Initialise the Simple Named Entity Detector with data for David Cameron.
         """
-        self.simpleNamedEntityDetector = SimpleNamedEntityDetector(50, 6)
+        self.simpleNamedEntityDetector = SimpleNamedEntityDetector(25, 2)
 
     # def test_worldCheck1Profiles(self):
     #     """
@@ -37,23 +37,17 @@ class TestSimpleNamedEntityDetector(unittest.TestCase):
 
     def test(self):
         training_data = [
-            ([1.0, 0.0, 0.0, 0.0, 0.0, 0.0], "data/profiles/train/davidcameron_1.txt"),
-            ([0.0, 1.0, 0.0, 0.0, 0.0, 0.0], "data/profiles/train/davidcameron_2.txt"),
-            ([0.0, 0.0, 1.0, 0.0, 0.0, 0.0], "data/profiles/train/davidcameron_3.txt"),
-            ([0.0, 0.0, 0.0, 1.0, 0.0, 0.0], "data/profiles/train/davidcameron_4.txt"),
-            ([0.0, 0.0, 0.0, 0.0, 1.0, 0.0], "data/profiles/train/davidcameron_5.txt"),
-            ([0.0, 0.0, 0.0, 0.0, 0.0, 1.0], "data/profiles/train/davidcameron_51.txt")
+            ([1.0, 0.0], "data/profiles/train/davidcameron_judge.txt"),
+            ([0.0, 1.0], "data/profiles/train/davidcameron_pm.txt")
         ]
 
-        self.simpleNamedEntityDetector.train("data/temp/simplenet/simplenet.bin", 50, 50, training_data)
+        self.simpleNamedEntityDetector.train("data/temp/simplenet/simplenet.bin", 2000, 416, training_data)
 
         test_data = [
-            ([1.0, 0.0, 0.0, 0.0, 0.0, 0.0], "data/profiles/train/davidcameron_5.txt"),
-            ([0.0, 0.0, 0.0, 0.0, 0.0, 1.0], "data/profiles/test/davidcameron_1.txt"),
-            ([1.0, 0.0, 0.0, 0.0, 0.0, 0.0], "data/profiles/test/davidcameron_2.txt")
+            ([1.0, 0.0], "data/profiles/test/davidcameron_judge.txt"),
+            ([0.0, 1.0], "data/profiles/test/davidcameron_pm.txt")
         ]
         self.simpleNamedEntityDetector.run("data/temp/simplenet/simplenet.bin", test_data)
-
 
 
 if __name__ == '__main__':
